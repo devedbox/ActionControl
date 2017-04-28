@@ -26,13 +26,22 @@
 import UIKit
 
 public final class ActionControl: UIControl {
-
-    /*
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func draw(_ rect: CGRect) {
-        // Drawing code
+    /// Attached view to show action control rightly.
+    public weak var view: UIView?
+    
+    public init(view: UIView) {
+        super.init(frame: CGRect.zero)
+        
+        self.view = view
     }
-    */
+    
+    required public init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
 
+// MARK: - Responder.
+
+extension ActionControl {
+    public override var canBecomeFirstResponder: Bool { return true }
 }
