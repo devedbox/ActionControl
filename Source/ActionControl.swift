@@ -28,20 +28,159 @@ import UIKit
 public final class ActionControl: UIControl {
     /// Attached view to show action control rightly.
     public weak var view: UIView?
+    /// Content view.
+    public var contentView: UIView { return _contentView }
+    fileprivate lazy var _contentView: UIView = { () -> UIView in
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .white
+        return view
+    }()
+    /// Placeholder view.
+    fileprivate lazy var _placeholder: UIImageView = { () -> UIImageView in
+        let imageView = UIImageView()
+        imageView.backgroundColor = .clear
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    /// Keywindow of the application.
+    fileprivate let keyWindow = UIApplication.shared.keyWindow
+    /// Content inset. Insets of the action control shows on key window. Default will be (20, 20, 20, 20).
+    public var contentInset: UIEdgeInsets = UIEdgeInsetsMake(20, 20, 20, 20)
     
     public init(view: UIView) {
         super.init(frame: CGRect.zero)
         
         self.view = view
+        translatesAutoresizingMaskIntoConstraints = false
     }
     
     required public init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: aDecoder)
+    }
+}
+
+// MARK: - Types.
+
+extension ActionControl {
+    public enum Direction: Int {
+        case `default`
+        case top
+        case left
+        case bottom
+        case right
+        
+        fileprivate static func proposed(of inside: CGRect, in rect: CGRect) -> Direction {
+            return .right
+        }
+    }
+}
+
+// MARK: - Overrides.
+
+extension ActionControl {
+    public override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        
+        guard self.canBecomeFirstResponder else { return }
     }
 }
 
 // MARK: - Responder.
 
 extension ActionControl {
-    public override var canBecomeFirstResponder: Bool { return true }
+    /// Returns a Boolean value indicating whether this object can become the first responder.
+    /// This method returns false by default. Subclasses must override this method and return true to be able to become first responder.
+    /// Do not call this method on a view that is not currently in the active view hierarchy. The result is undefined.
+    /// - Returns: true if the receiver can become the first responder or false if it cannot.
+    public override var canBecomeFirstResponder: Bool { return view == nil||keyWindow == nil||view?.window == nil||view?.superview == nil ? false : true }
+    /// Asks UIKit to make this object the first responder in its window.
+    /// Call this method when you want to the current object to be the first responder. Calling this method is not a guarantee that the object will become the first responder. UIKit asks the current first responder to resign as first responder, which it might not. If it does, UIKit calls this object's canBecomeFirstResponder method, which returns false by default. If this object succeeds in becoming the first responder, subsequent events targeting the first responder are delivered to this object first and UIKit attempts to display the object's input view, if any.
+    /// Never call this method on a view that is not part of an active view hierarchy. You can determine whether the view is onscreen, by checking its window property. If that property contains a valid window, it is part of an active view hierarchy. If that property is nil, the view is not part of a valid view hierarchy.
+    /// You can override this method in your custom responders to update your object's state or perform some action such as highlighting the selection. If you override this method, you must call super at some point in your implementation.
+    /// - Returns: true if this object is now the first-responder or false if it is not.
+    public override func becomeFirstResponder() -> Bool {
+        guard let keyWindow = self.keyWindow else { return super.becomeFirstResponder() }
+        guard let view = self.view else { return super.becomeFirstResponder() }
+        
+        // Add to key window.
+        keyWindow.addSubview(self)
+        self.addSubview(_contentView)
+        
+        keyWindow.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[self]|", metrics: nil, views: ["self": self]))
+        keyWindow.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[self]|", metrics: nil, views: ["self": self]))
+        
+        // Add contraints.
+        
+        let attachedRect = keyWindow.convert(view.frame, from: view.superview!)
+        // Add placeholder to self.
+        _setupPlaceholderView(attachedRect)
+        let visibleRect = keyWindow.bounds.insetBy(contentInset)
+        
+        let direction = Direction.proposed(of: attachedRect, in: visibleRect)
+        
+        switch direction {
+        case .top:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.origin.y-visibleRect.origin.y)
+            _contentView.addConstraints([width, height])
+            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+        case .left:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
+            _contentView.addConstraints([width, height])
+            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+        case .bottom:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
+            _contentView.addConstraints([width, height])
+            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+        case .right:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
+            _contentView.addConstraints([width, height])
+            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+        default:
+            return false
+        }
+        
+        return super.becomeFirstResponder()
+    }
+    /// Returns a Boolean value indicating whether the receiver is willing to relinquish first-responder status.
+    /// This method returns true by default. You can override this method in your custom responders and return a different value if needed. For example, a text field containing invalid content might want to return false to ensure that the user corrects that content first.
+    /// - Returns: true if the receiver can resign first-responder status, false otherwise.
+    public override var canResignFirstResponder: Bool { return self.isFirstResponder }
+    /// Notifies this object that it has been asked to relinquish its status as first responder in its window.
+    /// The default implementation returns true, resigning first responder status. You can override this method in your custom responders to update your object's state or perform other actions, such as removing the highlight from a selection. You can also return false, refusing to relinquish first responder status. If you override this method, you must call super (the superclass implementation) at some point in your code.
+    public override func resignFirstResponder() -> Bool {
+        return super.resignFirstResponder()
+    }
+}
+
+extension ActionControl {
+    fileprivate func _setupPlaceholderView(_ rect: CGRect) -> Swift.Void {
+        self.addSubview(_placeholder)
+        
+        _placeholder.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_placeholder(width)]", metrics: ["width": rect.width], views: ["_placeholder": _placeholder]))
+        _placeholder.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder(height)]", metrics: ["height": rect.height], views: ["_placeholder": _placeholder]))
+        
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(left)-[_placeholder]", metrics: ["left": rect.origin.x], views: ["_placeholder": _placeholder]))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(top)-[_placeholder]", metrics: ["top": rect.origin.y], views: ["_placeholder": _placeholder]))
+    }
+}
+
+extension CGRect {
+    /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
+    /// The rectangle is standardized and then the inset parameters are applied. If the resulting rectangle would have a negative height or width, a null rectangle is returned.
+    /// - Parameters:
+    ///   - insets: The values to use for adjusting the source rectangle. To create an inset rectangle, specify a positive value. To create a larger, encompassing rectangle, specify a negative value.
+    /// - Returns:
+    /// A rectangle. The origin value is offset in the x-axis by the distance specified by the `inset.left` and in the y-axis by the distance specified by the `inset.top`, and its size adjusted by (insets.left+inset.right, insets.top+insets.bottom), relative to the source rectangle. If insets is positive values, then the rectangle’s size is decreased. If insets is negative values, the rectangle’s size is increased.
+    public func insetBy(_ insets: UIEdgeInsets) -> CGRect {
+        return CGRect(x: origin.x + insets.left, y: origin.y + insets.top, width: width - (insets.left+insets.right), height: height - (insets.top+insets.bottom))
+    }
 }

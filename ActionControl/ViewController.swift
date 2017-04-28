@@ -22,6 +22,9 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-
+    @IBAction func show(_ sender: UITapGestureRecognizer) {
+        let actionControl = ActionControl(view: label)
+        actionControl.becomeFirstResponder()
+    }
 }
 
