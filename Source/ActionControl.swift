@@ -25,7 +25,7 @@
 
 import UIKit
 
-class ActionControl: UIControl {
+public final class ActionControl: UIControl {
 
     /*
     // Only override draw() if you perform custom drawing.
