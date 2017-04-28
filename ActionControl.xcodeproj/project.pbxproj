@@ -22,8 +22,6 @@
 		DC1F2CAD1EB2EBAD00CC2BAC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DC1F2CB01EB2EBAD00CC2BAC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DC1F2CB21EB2EBAD00CC2BAC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DC1F2CBB1EB2EBAD00CC2BAC /* ActionControlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionControlTests.swift; sourceTree = "<group>"; };
-		DC1F2CBD1EB2EBAD00CC2BAC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,8 +38,8 @@
 		DC1F2C9A1EB2EBAD00CC2BAC = {
 			isa = PBXGroup;
 			children = (
+				DC1F2CC81EB2ED5500CC2BAC /* Source */,
 				DC1F2CA51EB2EBAD00CC2BAC /* ActionControl */,
-				DC1F2CBA1EB2EBAD00CC2BAC /* ActionControlTests */,
 				DC1F2CA41EB2EBAD00CC2BAC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -67,13 +65,11 @@
 			path = ActionControl;
 			sourceTree = "<group>";
 		};
-		DC1F2CBA1EB2EBAD00CC2BAC /* ActionControlTests */ = {
+		DC1F2CC81EB2ED5500CC2BAC /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				DC1F2CBB1EB2EBAD00CC2BAC /* ActionControlTests.swift */,
-				DC1F2CBD1EB2EBAD00CC2BAC /* Info.plist */,
 			);
-			path = ActionControlTests;
+			path = Source;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
