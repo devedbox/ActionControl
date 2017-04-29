@@ -15,6 +15,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        label.layer.borderWidth = 0.5
+        label.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
     }
 
     override func didReceiveMemoryWarning() {
