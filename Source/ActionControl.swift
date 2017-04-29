@@ -45,6 +45,8 @@ public final class ActionControl: UIControl {
     }()
     /// Keywindow of the application.
     fileprivate let keyWindow = UIApplication.shared.keyWindow
+    /// Showing direction.
+    fileprivate var _direction: Direction = .default
     /// Content inset. Insets of the action control shows on key window. Default will be (20, 20, 20, 20).
     public var contentInset: UIEdgeInsets = UIEdgeInsetsMake(20, 20, 20, 20)
     
@@ -53,6 +55,7 @@ public final class ActionControl: UIControl {
         
         self.view = view
         translatesAutoresizingMaskIntoConstraints = false
+        backgroundColor = .clear
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -71,7 +74,7 @@ extension ActionControl {
         case right
         
         fileprivate static func proposed(of inside: CGRect, in rect: CGRect) -> Direction {
-            return .right
+            return .bottom
         }
     }
 }
@@ -79,10 +82,25 @@ extension ActionControl {
 // MARK: - Overrides.
 
 extension ActionControl {
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        guard isFirstResponder else { return view }
+        if !_contentView.frame.contains(point), !_placeholder.frame.contains(point) {
+            resignFirstResponder()
+        }
+        return view
+    }
+    
     public override func didMoveToSuperview() {
         super.didMoveToSuperview()
         
         guard self.canBecomeFirstResponder else { return }
+    }
+    
+    public override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        
+        _showShadow(_direction)
     }
 }
 
@@ -99,6 +117,7 @@ extension ActionControl {
     /// Never call this method on a view that is not part of an active view hierarchy. You can determine whether the view is onscreen, by checking its window property. If that property contains a valid window, it is part of an active view hierarchy. If that property is nil, the view is not part of a valid view hierarchy.
     /// You can override this method in your custom responders to update your object's state or perform some action such as highlighting the selection. If you override this method, you must call super at some point in your implementation.
     /// - Returns: true if this object is now the first-responder or false if it is not.
+    @discardableResult
     public override func becomeFirstResponder() -> Bool {
         guard let keyWindow = self.keyWindow else { return super.becomeFirstResponder() }
         guard let view = self.view else { return super.becomeFirstResponder() }
@@ -124,29 +143,34 @@ extension ActionControl {
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.origin.y-visibleRect.origin.y)
             _contentView.addConstraints([width, height])
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
         case .left:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
             _contentView.addConstraints([width, height])
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
         case .bottom:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
-            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.origin.y)
             _contentView.addConstraints([width, height])
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
         case .right:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
             _contentView.addConstraints([width, height])
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            self.addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
         default:
             return false
         }
+        
+        _direction = direction
+        setNeedsLayout()
+        layoutIfNeeded()
+        setNeedsDisplay()
         
         return super.becomeFirstResponder()
     }
@@ -156,7 +180,12 @@ extension ActionControl {
     public override var canResignFirstResponder: Bool { return self.isFirstResponder }
     /// Notifies this object that it has been asked to relinquish its status as first responder in its window.
     /// The default implementation returns true, resigning first responder status. You can override this method in your custom responders to update your object's state or perform other actions, such as removing the highlight from a selection. You can also return false, refusing to relinquish first responder status. If you override this method, you must call super (the superclass implementation) at some point in your code.
+    @discardableResult
     public override func resignFirstResponder() -> Bool {
+        guard isFirstResponder else { return false }
+        
+        removeFromSuperview()
+        
         return super.resignFirstResponder()
     }
 }
@@ -171,6 +200,42 @@ extension ActionControl {
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(left)-[_placeholder]", metrics: ["left": rect.origin.x], views: ["_placeholder": _placeholder]))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-(top)-[_placeholder]", metrics: ["top": rect.origin.y], views: ["_placeholder": _placeholder]))
     }
+    
+    fileprivate func _showShadow(_ direction: Direction) -> Swift.Void {
+        _contentView.layer.shadowOpacity = 0.2
+        _contentView.layer.shadowRadius = 5
+        _contentView.layer.shadowOffset = .zero
+        
+        switch direction {
+        case .top:
+            let path = UIBezierPath()
+            let frame = _contentView.bounds
+            path.move(to: frame.leftTop)
+            path.addLine(to: frame.rightTop)
+            path.addLine(to: frame.rightBottom)
+            path.addLine(to: frame.inside(offset: .zero))
+            path.addLine(to: frame.leftBottom)
+            path.addLine(to: frame.leftTop)
+            path.close()
+            _contentView.layer.shadowPath = path.cgPath
+        case .left:
+            _contentView.layer.shadowPath = UIBezierPath(roundedRect: _contentView.bounds, cornerRadius: 0.0).cgPath
+        case .bottom:
+            let path = UIBezierPath()
+            let frame = _contentView.bounds
+            path.move(to: frame.leftTop)
+            path.addLine(to: frame.inside(offset: .zero))
+            path.addLine(to: frame.rightTop)
+            path.addLine(to: frame.rightBottom)
+            path.addLine(to: frame.leftBottom)
+            path.addLine(to: frame.leftTop)
+            path.close()
+            _contentView.layer.shadowPath = path.cgPath
+        case .right:
+            _contentView.layer.shadowPath = UIBezierPath(roundedRect: _contentView.bounds, cornerRadius: 0.0).cgPath
+        default: _contentView.layer.shadowPath = nil
+        }
+    }
 }
 
 extension CGRect {
@@ -183,4 +248,12 @@ extension CGRect {
     public func insetBy(_ insets: UIEdgeInsets) -> CGRect {
         return CGRect(x: origin.x + insets.left, y: origin.y + insets.top, width: width - (insets.left+insets.right), height: height - (insets.top+insets.bottom))
     }
+    
+    public var center: CGPoint { return CGPoint(x: midX, y: midY) }
+    public var leftTop: CGPoint { return origin }
+    public var rightTop: CGPoint { return CGPoint(x: maxX, y: origin.y) }
+    public var leftBottom: CGPoint { return CGPoint(x: origin.x, y: maxY) }
+    public var rightBottom: CGPoint { return CGPoint(x: maxX, y: maxY) }
+    
+    public func inside(offset: CGPoint) -> CGPoint { return CGPoint(x: max(minX, min(center.x+offset.x, maxX)), y: max(minY, min(center.y+offset.y, maxY))) }
 }
