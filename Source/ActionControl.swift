@@ -47,6 +47,8 @@ public final class ActionControl: UIControl {
     fileprivate let keyWindow = UIApplication.shared.keyWindow
     /// Showing direction.
     fileprivate var _direction: Direction = .default
+    /// Is animating of the content view.
+    fileprivate var _animatingHiding: Bool = false
     /// Content inset. Insets of the action control shows on key window. Default will be (20, 20, 20, 20).
     public var contentInset: UIEdgeInsets = UIEdgeInsetsMake(20, 20, 20, 20)
     
@@ -190,10 +192,14 @@ extension ActionControl {
     public override func resignFirstResponder() -> Bool {
         guard isFirstResponder else { return false }
         
-        removeFromSuperview()
+        _hide(true)
         
         return super.resignFirstResponder()
     }
+    /// Returns a Boolean value indicating whether this object is the first responder.
+    /// UIKit dispatches some types of events, such as motion events, to the first responder initially.
+    /// - Returns: true if the receiver is the first responder or false if it is not.
+    // public override var isFirstResponder: Bool { return super.isFirstResponder && !_animatingHiding}
 }
 
 extension ActionControl {
@@ -244,6 +250,7 @@ extension ActionControl {
     }
     
     fileprivate func _show(animated: Bool) -> Swift.Void {
+        /*
         let constraints = _contentView.constraints.filter { $0.firstAttribute == .height }
         guard let constraint = constraints.first else { return }
         
@@ -260,6 +267,25 @@ extension ActionControl {
             self.setNeedsLayout()
             self.layoutIfNeeded()
         }, completion: nil)
+         */
+        _contentView.alpha = 0.0
+        
+        UIView.animate(withDuration: 0.35, animations: { [unowned self] in
+            self.contentView.alpha = 1.0
+        }, completion: nil)
+    }
+    
+    fileprivate func _hide(_ animated: Bool) -> Swift.Void {
+        _animatingHiding = true
+        UIView.animate(withDuration: 0.25, animations: { [unowned self] in
+            self.contentView.alpha = 0.0
+        }) { [unowned self] finished in
+            guard finished else { return }
+            
+            self._animatingHiding = false
+            self.removeFromSuperview()
+            self.contentView.alpha = 1.0
+        }
     }
 }
 
