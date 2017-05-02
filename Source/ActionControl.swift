@@ -136,8 +136,8 @@ extension ActionControl {
         let attachedRect = keyWindow.convert(view.frame, from: view.superview!)
         // Add placeholder to self.
         _setupPlaceholderView(attachedRect)
-        let visibleRect = keyWindow.bounds.insetBy(contentInset)
         
+        let visibleRect = keyWindow.bounds.insetBy(contentInset)
         let direction = Direction.proposed(of: attachedRect, in: visibleRect)
         
         _addContraints(at: direction, attached: attachedRect, on: visibleRect)
