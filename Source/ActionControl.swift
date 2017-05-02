@@ -129,11 +129,7 @@ extension ActionControl {
         guard let view = self.view else { return super.becomeFirstResponder() }
         
         // Add to key window.
-        keyWindow.addSubview(self)
-        self.addSubview(_contentView)
-        
-        keyWindow.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[self]|", metrics: nil, views: ["self": self]))
-        keyWindow.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[self]|", metrics: nil, views: ["self": self]))
+        _addToKeyWindow(keyWindow)
         
         // Add contraints.
         
@@ -144,34 +140,7 @@ extension ActionControl {
         
         let direction = Direction.proposed(of: attachedRect, in: visibleRect)
         
-        switch direction {
-        case .top:
-            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
-            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.origin.y-visibleRect.origin.y)
-            _contentView.addConstraints([width, height])
-            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
-        case .left:
-            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
-            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
-            _contentView.addConstraints([width, height])
-            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
-        case .bottom:
-            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
-            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.origin.y)
-            _contentView.addConstraints([width, height])
-            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
-        case .right:
-            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
-            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
-            _contentView.addConstraints([width, height])
-            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
-        default:
-            return false
-        }
+        _addContraints(at: direction, attached: attachedRect, on: visibleRect)
         
         _direction = direction
         setNeedsLayout()
@@ -203,6 +172,44 @@ extension ActionControl {
 }
 
 extension ActionControl {
+    fileprivate func _addToKeyWindow(_ keyWindow: UIWindow) -> Swift.Void {
+        keyWindow.addSubview(self)
+        self.addSubview(_contentView)
+        
+        keyWindow.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[self]|", metrics: nil, views: ["self": self]))
+        keyWindow.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[self]|", metrics: nil, views: ["self": self]))
+    }
+    
+    fileprivate func _addContraints(at direction: Direction, attached attachedRect: CGRect, on visibleRect: CGRect) -> Swift.Void {
+        switch direction {
+        case .top:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.origin.y-visibleRect.origin.y)
+            _contentView.addConstraints([width, height])
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+        case .left:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
+            _contentView.addConstraints([width, height])
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+        case .bottom:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.origin.y)
+            _contentView.addConstraints([width, height])
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+        case .right:
+            let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
+            let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.height-attachedRect.origin.y)
+            _contentView.addConstraints([width, height])
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+        default: break
+        }
+    }
+    
     fileprivate func _setupPlaceholderView(_ rect: CGRect) -> Swift.Void {
         self.addSubview(_placeholder)
         
