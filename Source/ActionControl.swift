@@ -77,6 +77,10 @@ extension ActionControl {
             return .bottom
         }
     }
+    
+    private enum Animation: Int {
+        case fade
+    }
 }
 
 // MARK: - Overrides.
@@ -172,6 +176,8 @@ extension ActionControl {
         layoutIfNeeded()
         setNeedsDisplay()
         
+        _show(animated: true)
+        
         return super.becomeFirstResponder()
     }
     /// Returns a Boolean value indicating whether the receiver is willing to relinquish first-responder status.
@@ -236,6 +242,25 @@ extension ActionControl {
         default: _contentView.layer.shadowPath = nil
         }
     }
+    
+    fileprivate func _show(animated: Bool) -> Swift.Void {
+        let constraints = _contentView.constraints.filter { $0.firstAttribute == .height }
+        guard let constraint = constraints.first else { return }
+        
+        let height = constraint.constant
+        constraint.constant = 0.0
+        
+        setNeedsLayout()
+        layoutIfNeeded()
+        
+        UIView.animate(withDuration: 0.5, delay: 0.1, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.9, options: UIViewAnimationOptions(rawValue: 7), animations: { [unowned self] in
+            constraint.constant = height
+            
+            self.setNeedsDisplay()
+            self.setNeedsLayout()
+            self.layoutIfNeeded()
+        }, completion: nil)
+    }
 }
 
 extension CGRect {
@@ -248,12 +273,18 @@ extension CGRect {
     public func insetBy(_ insets: UIEdgeInsets) -> CGRect {
         return CGRect(x: origin.x + insets.left, y: origin.y + insets.top, width: width - (insets.left+insets.right), height: height - (insets.top+insets.bottom))
     }
-    
+    /// Get the center point of the rectangle.
     public var center: CGPoint { return CGPoint(x: midX, y: midY) }
+    /// Get the left-top point of the rectangle.
     public var leftTop: CGPoint { return origin }
+    /// Get the right-top point of the rectangle.
     public var rightTop: CGPoint { return CGPoint(x: maxX, y: origin.y) }
+    /// Get the left-bottom point of the rectangle.
     public var leftBottom: CGPoint { return CGPoint(x: origin.x, y: maxY) }
+    /// Get the right-bottom point of the rectangle.
     public var rightBottom: CGPoint { return CGPoint(x: maxX, y: maxY) }
-    
+    /// Returns a point inside the rectangle by offset the `offset` values to the center of the rectangle.
+    /// - Parameters:
+    ///   - offset: Offset of the center point.
     public func inside(offset: CGPoint) -> CGPoint { return CGPoint(x: max(minX, min(center.x+offset.x, maxX)), y: max(minY, min(center.y+offset.y, maxY))) }
 }
