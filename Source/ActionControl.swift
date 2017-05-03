@@ -68,7 +68,13 @@ public final class ActionControl: UIControl {
 // MARK: - Types.
 
 extension ActionControl {
-    public enum Direction: Int {
+    public enum Alignment {
+        case center
+        case top
+        case bottom
+    }
+    
+    public enum Direction {
         case `default`
         case top
         case left
@@ -80,7 +86,7 @@ extension ActionControl {
         }
     }
     
-    private enum Animation: Int {
+    private enum Animation {
         case fade
     }
 }
@@ -187,7 +193,7 @@ extension ActionControl {
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.origin.y-visibleRect.origin.y)
             _contentView.addConstraints([width, height])
             addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .centerX, relatedBy: .equal, toItem: _contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0))
         case .left:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.origin.y)
@@ -199,7 +205,7 @@ extension ActionControl {
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.maxY)
             _contentView.addConstraints([width, height])
             addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .left, relatedBy: .equal, toItem: _contentView, attribute: .left, multiplier: 1.0, constant: 0.0))
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .centerX, relatedBy: .equal, toItem: _contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0))
         case .right:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.origin.y)
