@@ -26,10 +26,20 @@
 import UIKit
 
 public final class ActionControl: UIControl {
+    
+    // MARK: - Public vars.
+    
     /// Attached view to show action control rightly.
     public weak var view: UIView?
     /// Content view.
     public var contentView: UIView { return _contentView }
+    /// Content inset. Insets of the action control shows on key window. Default will be (20, 20, 20, 20).
+    public var contentInset: UIEdgeInsets = UIEdgeInsetsMake(20, 20, 20, 20)
+    /// Alignment of the content view and the placeholder.
+    public var alignment: Alignment = .center
+    
+    // MARK: - Private vars.
+    
     fileprivate lazy var _contentView: UIView = { () -> UIView in
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -49,8 +59,8 @@ public final class ActionControl: UIControl {
     fileprivate var _direction: Direction = .default
     /// Is animating of the content view.
     fileprivate var _animatingHiding: Bool = false
-    /// Content inset. Insets of the action control shows on key window. Default will be (20, 20, 20, 20).
-    public var contentInset: UIEdgeInsets = UIEdgeInsetsMake(20, 20, 20, 20)
+    
+    // MARK: - Life cycle.
     
     public init(view: UIView) {
         super.init(frame: CGRect.zero)
@@ -70,8 +80,8 @@ public final class ActionControl: UIControl {
 extension ActionControl {
     public enum Alignment {
         case center
-        case top
-        case bottom
+        case leading
+        case trailing
     }
     
     public enum Direction {
@@ -82,7 +92,7 @@ extension ActionControl {
         case right
         
         fileprivate static func proposed(of inside: CGRect, in rect: CGRect) -> Direction {
-            return .bottom
+            return .right
         }
     }
     
@@ -193,25 +203,29 @@ extension ActionControl {
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.origin.y-visibleRect.origin.y)
             _contentView.addConstraints([width, height])
             addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .centerX, relatedBy: .equal, toItem: _contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0))
+            let attribute = NSLayoutAttribute.attribute(alignment, on: direction)
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: attribute, relatedBy: .equal, toItem: _contentView, attribute: attribute, multiplier: 1.0, constant: 0.0))
         case .left:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.origin.y)
             _contentView.addConstraints([width, height])
             addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_contentView][_placeholder]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+            let attribute = NSLayoutAttribute.attribute(alignment, on: direction)
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: attribute, relatedBy: .equal, toItem: _contentView, attribute: attribute, multiplier: 1.0, constant: 0.0))
         case .bottom:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.maxY)
             _contentView.addConstraints([width, height])
             addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .centerX, relatedBy: .equal, toItem: _contentView, attribute: .centerX, multiplier: 1.0, constant: 0.0))
+            let attribute = NSLayoutAttribute.attribute(alignment, on: direction)
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: attribute, relatedBy: .equal, toItem: _contentView, attribute: attribute, multiplier: 1.0, constant: 0.0))
         case .right:
             let width = NSLayoutConstraint(item: _contentView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: attachedRect.width)
             let height = NSLayoutConstraint(item: _contentView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: visibleRect.maxY-attachedRect.origin.y)
             _contentView.addConstraints([width, height])
             addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[_placeholder][_contentView]", metrics: nil, views: ["_contentView": _contentView, "_placeholder": _placeholder]))
-            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: .top, relatedBy: .equal, toItem: _contentView, attribute: .top, multiplier: 1.0, constant: 0.0))
+            let attribute = NSLayoutAttribute.attribute(alignment, on: direction)
+            addConstraint(NSLayoutConstraint(item: _placeholder, attribute: attribute, relatedBy: .equal, toItem: _contentView, attribute: attribute, multiplier: 1.0, constant: 0.0))
         default: break
         }
     }
@@ -326,4 +340,20 @@ extension CGRect {
     /// - Parameters:
     ///   - offset: Offset of the center point.
     public func inside(offset: CGPoint) -> CGPoint { return CGPoint(x: max(minX, min(center.x+offset.x, maxX)), y: max(minY, min(center.y+offset.y, maxY))) }
+}
+
+extension NSLayoutAttribute {
+    fileprivate static func attribute(_ alignment: ActionControl.Alignment, on direction: ActionControl.Direction) -> NSLayoutAttribute {
+        guard direction != .default else { return .centerX }
+        
+        switch alignment {
+        case .leading:
+            return (direction == .left || direction == .right) ? .top     : .leading
+        case .trailing:
+            return (direction == .left || direction == .right) ? .bottom  : .trailing
+        case .center: fallthrough
+        default:
+            return (direction == .left || direction == .right) ? .centerY : .centerX
+        }
+    }
 }
