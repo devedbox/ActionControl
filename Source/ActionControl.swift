@@ -76,7 +76,7 @@ extension ActionControl {
         case right
         
         fileprivate static func proposed(of inside: CGRect, in rect: CGRect) -> Direction {
-            return .right
+            return .bottom
         }
     }
     
@@ -307,13 +307,13 @@ extension CGRect {
         return CGRect(x: origin.x + insets.left, y: origin.y + insets.top, width: width - (insets.left+insets.right), height: height - (insets.top+insets.bottom))
     }
     /// Get the center point of the rectangle.
-    public var center: CGPoint { return CGPoint(x: midX, y: midY) }
+    public var center     : CGPoint { return CGPoint(x: midX, y: midY) }
     /// Get the left-top point of the rectangle.
-    public var leftTop: CGPoint { return origin }
+    public var leftTop    : CGPoint { return origin }
     /// Get the right-top point of the rectangle.
-    public var rightTop: CGPoint { return CGPoint(x: maxX, y: origin.y) }
+    public var rightTop   : CGPoint { return CGPoint(x: maxX, y: origin.y) }
     /// Get the left-bottom point of the rectangle.
-    public var leftBottom: CGPoint { return CGPoint(x: origin.x, y: maxY) }
+    public var leftBottom : CGPoint { return CGPoint(x: origin.x, y: maxY) }
     /// Get the right-bottom point of the rectangle.
     public var rightBottom: CGPoint { return CGPoint(x: maxX, y: maxY) }
     /// Returns a point inside the rectangle by offset the `offset` values to the center of the rectangle.
