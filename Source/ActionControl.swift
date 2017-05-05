@@ -37,6 +37,13 @@ public final class ActionControl: UIControl {
     public var contentInset: UIEdgeInsets = UIEdgeInsetsMake(20, 20, 20, 20)
     /// Alignment of the content view and the placeholder.
     public var alignment: Alignment = .center
+    /// Table view.
+    public let tableView: UITableView = { () -> UITableView in
+        let tableView = UITableView(frame: .zero, style: .plain)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        return tableView
+    }()
     
     // MARK: - Private vars.
     
@@ -68,10 +75,14 @@ public final class ActionControl: UIControl {
         self.view = view
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .clear
+        
+        _setupTableView()
     }
     
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
+        
+        _setupTableView()
     }
 }
 
@@ -92,7 +103,7 @@ extension ActionControl {
         case right
         
         fileprivate static func proposed(of inside: CGRect, in rect: CGRect) -> Direction {
-            return .right
+            return .bottom
         }
     }
     
@@ -188,6 +199,12 @@ extension ActionControl {
 }
 
 extension ActionControl {
+    fileprivate func _setupTableView() -> Swift.Void {
+        _contentView.addSubview(tableView)
+        _contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[tableView]|", options: [], metrics: nil, views: ["tableView": tableView]))
+        _contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: ["tableView": tableView]))
+    }
+    
     fileprivate func _addToKeyWindow(_ keyWindow: UIWindow) -> Swift.Void {
         keyWindow.addSubview(self)
         self.addSubview(_contentView)
